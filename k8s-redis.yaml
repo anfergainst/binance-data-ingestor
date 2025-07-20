@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-statefulset
+spec:
+  serviceName: "redis-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-persistent
+  template:
+    metadata:
+      labels:
+        app: redis-persistent
+    spec:
+      containers:
+      - name: redis
+        image: redis:latest
+        # Enables Redis persistence
+        args: ["--appendonly", "yes"]
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+  # Defines the persistent storage
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 30Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+spec:
+  selector:
+    app: redis-persistent
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+---
+# Using NodePort for docker kubernetes
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service-docker
+spec:
+  type: NodePort
+  selector:
+    app: redis-persistent
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+      nodePort: 31111

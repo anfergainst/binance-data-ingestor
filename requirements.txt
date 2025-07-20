@@ -1,0 +1,6 @@
+redis>=4.3.0
+websockets>=10.0
+python-dotenv>=0.20.0
+pandas
+pyarrow
+jq
